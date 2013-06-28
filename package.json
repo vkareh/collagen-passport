@@ -1,0 +1,24 @@
+{
+  "name": "collagen-passport",
+  "description": "Integrate the passport authentication framework into Collagen.js",
+  "version": "0.0.1",
+  "author": {
+    "name": "Victor Kareh",
+    "url": "http://www.vkareh.net"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vkareh/collagen-passport.git"
+  },
+  "main": "./index.js",
+  "dependencies": {
+    "passport": "0.1.x"
+  },
+  "keywords": [
+    "collagen",
+    "passport",
+    "oauth",
+    "authentication"
+  ],
+  "license": "MIT"
+}
