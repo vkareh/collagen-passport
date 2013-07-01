@@ -52,6 +52,8 @@ servers.Collagen.augment({
 
             that.get('/auth/' + key + '/logout', function(req, res) {
                 req.logout();
+                // Remove user object from session as well
+                delete req.session.user;
                 res.redirect('/');
             });
 
