@@ -43,7 +43,6 @@ servers.Collagen.augment({
             });
             that.use(passport.initialize());
             that.use(passport.session());
-            that.use(that.router);
 
             that.get('/auth/' + key, passport.authenticate(key, {
                 successRedirect: '/',
@@ -59,16 +58,7 @@ servers.Collagen.augment({
 
             // This should work with most OAuth-based authentication frameworks
             // without interfering with non-OAuth ones.
-            that.get('/auth/' + key + '/callback', passport.authenticate(key), function(req, res, next) {
-                // Add the query parameters to the user object.
-                // This should be done by the oauth library, but for some reason
-                // it doesn't behave correctly with some variables.
-                // @see https://github.com/jaredhanson/passport-oauth/issues/1
-                _.extend(req.user, req.query);
-
-                // we don't want the query argument oauth_token in the user record.
-                delete req.user.oauth_token;
-
+            that.get('/auth/' + key + '/callback', passport.authenticate(key), function(req, res) {
                 // Move the oauth credentials into the session proper, not the
                 // user record. This means we can push the user record to the
                 // client without leaking secrets.
