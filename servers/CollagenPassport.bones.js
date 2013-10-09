@@ -12,7 +12,7 @@ passport.deserializeUser(function(obj, done) {
 servers.Collagen.augment({
     initialize: function(parent, app) {
         parent.call(this, app);
-        var that = this;
+        var _this = this;
         _.each(Collagen.config.passport, function(options, key) {
             options.sessionKey = 'auth:' + key;
 
@@ -24,45 +24,71 @@ servers.Collagen.augment({
                 ,   profile = arguments.pop();
 
                 // Store profile details into the user object, to allow us to get them into the session.
-                if (options.verify === 'OAuth') _.extend(profile, {oauth: {token: arguments[0], token_secret: arguments[1]}});
+                if (options.requestTokenURL) _.extend(profile, {oauth: {token: arguments[0], token_secret: arguments[1]}});
                 else if (_.size(arguments)) _.extend(profile, arguments);
 
                 return done(null, profile);
             }
 
             // store the strategy instance in a separate variable, so we can access it easily.
-            var strategy = new (require('passport-' + key)[options.strategy])(options, verify);
+            var strategy = new (require('passport-' + key))(options, verify);
             // mount the passport strategy.
             passport.use(strategy);
 
             // give the request access to the strategy instance
             // to allow re-use of the oauth instance to make requests.
-            that.use(function(req, res, next) {
+            _this.use(function(req, res, next) {
                 req.passportStrategy = strategy;
                 next();
             });
-            that.use(passport.initialize());
-            that.use(passport.session());
+            _this.use(passport.initialize());
+            _this.use(passport.session());
 
-            that.get('/auth/' + key, passport.authenticate(key, {
+            // Attempt to load user data. Authenticate if not available.
+            _this.get('/auth/' + key + '/login', function(req, res, next) {
+                var cookieKey = Collagen.config.session.key,
+                    tokens = req.session[options.sessionKey] || req.session['oauth'],
+                    destination = '/' + (req.query && req.query.destination || '');
+
+                if (req.cookies[cookieKey] && tokens) {
+                    var params = _.union(_.values(tokens), {}, function(err, user) {
+                        if (err) res.redirect('/auth/' + key);
+                        req.session.user = user;
+                        req.session.messages = req.session.messages || [];
+                        req.session.messages.push({type: 'info', message: 'User successfully logged in'});
+                        res.redirect(destination);
+                    });
+                    strategy.userProfile.apply(strategy, params);
+                } else {
+                    res.redirect('/auth/' + key);
+                }
+            });
+
+            // Perform authentication
+            _this.get('/auth/' + key, passport.authenticate(key, {
                 successRedirect: '/',
                 failureRedirect: '/error'
             }));
 
-            that.get('/auth/' + key + '/logout', function(req, res) {
+            // Logout user
+            _this.get('/auth/' + key + '/logout', function(req, res) {
+                var destination = '/' + (req.query && req.query.destination || '');
+
                 req.logout();
                 // Remove user object from session as well
                 delete req.session.user;
-                res.redirect('/');
+                req.session.messages = req.session.messages || [];
+                req.session.messages.push({type: 'info', message: 'User successfully logged out'});
+                res.redirect(destination);
             });
 
             // This should work with most OAuth-based authentication frameworks
             // without interfering with non-OAuth ones.
-            that.get('/auth/' + key + '/callback', passport.authenticate(key), function(req, res) {
+            _this.get('/auth/' + key + '/callback', passport.authenticate(key), function(req, res) {
                 // Move the oauth credentials into the session proper, not the
                 // user record. This means we can push the user record to the
                 // client without leaking secrets.
-                req.session.oauth = req.user.oauth;
+                req.session.oauth = _.clone(req.user.oauth);
                 delete req.user.oauth;
 
                 // Store the user object into the session for later retrieval
@@ -70,6 +96,8 @@ servers.Collagen.augment({
 
                 // @todo Decide wether we want to redirect always.
                 // This is currently quite hard to bypass.
+                req.session.messages = req.session.messages || [];
+                req.session.messages.push({type: 'info', message: 'User successfully logged in'});
                 res.redirect('/');
             });
         });

@@ -9,13 +9,11 @@ found here: [https://github.com/jaredhanson/passport/wiki/Strategies](https://gi
 
 The configuration for your authentication strategy should live in the
 `collagen.json` file and can be created as follows (the example uses the
-[passport-oauth](https://github.com/jaredhanson/passport-oauth) strategy):
+[passport-oauth1](https://github.com/jaredhanson/passport-oauth1) strategy):
 
 ````JSON
 "passport": {
-    "oauth" : {
-        "strategy": "OAuthStrategy",
-        "verify": "OAuth",
+    "oauth1" : { // <---Authentication strategy: module name, without the `passport-` part
         "requestTokenURL": "http://provider.example.com/oauth/request_token",
         "accessTokenURL": "http://provider.example.com/oauth/access_token",
         "userAuthorizationURL": "http://provider.example.com/oauth/authorize",
@@ -26,11 +24,9 @@ The configuration for your authentication strategy should live in the
 }
 ````
 
-The `strategy` property will be the class name used by the selected strategy.
-The `verify` property is used by Collagen to create the verify function, which
-dictates how the user profile object is created. It currently supports OAuth,
-but has sensible defaults in case other mechanisms are used (this can also be
-extended with your custom logic).
+The module currently supports user profile verification function for OAuth
+strategies, but has sensible defaults in case other mechanisms are used (this
+can also be extended with your custom logic).
 
 To login using this strategy, browse to `http://localhost:3000/auth/oauth`
 (or /auth/KEY, where KEY is your authentication strategy). Multiple
