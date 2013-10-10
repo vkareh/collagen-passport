@@ -49,12 +49,14 @@ servers.Collagen.augment({
                 var cookieKey = Collagen.config.session.key,
                     tokens = req.session[options.sessionKey] || req.session['oauth'];
 
-                var destination = '/';
-                if (req.headers && req.headers.host && req.headers.referer) {
-                    destination = req.headers.referer.split(req.headers.host)[1] || '/';
-                }
-
                 if (req.cookies[cookieKey] && tokens) {
+                    // Determine destination path after login
+                    var destination = '/';
+                    if (req.headers && req.headers.host && req.headers.referer) {
+                        destination = req.headers.referer.split(req.headers.host)[1] || '/';
+                    }
+
+                    // Determine parameters to load user profile
                     var params = _.union(_.values(tokens), {}, function(err, user) {
                         if (err) res.redirect('/auth/' + key);
                         req.session.user = user;
@@ -76,6 +78,7 @@ servers.Collagen.augment({
 
             // Logout user
             _this.get('/auth/' + key + '/logout', function(req, res) {
+                // Determine destination path after logout
                 var destination = '/';
                 if (req.headers && req.headers.host && req.headers.referer) {
                     destination = req.headers.referer.split(req.headers.host)[1] || '/';
