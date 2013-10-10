@@ -47,8 +47,12 @@ servers.Collagen.augment({
             // Attempt to load user data. Authenticate if not available.
             _this.get('/auth/' + key + '/login', function(req, res, next) {
                 var cookieKey = Collagen.config.session.key,
-                    tokens = req.session[options.sessionKey] || req.session['oauth'],
+                    tokens = req.session[options.sessionKey] || req.session['oauth'];
+
+                var destination = '/';
+                if (req.headers && req.headers.host && req.headers.referer)
                     destination = req.headers.referer.split(req.headers.host)[1] || '/';
+                }
 
                 if (req.cookies[cookieKey] && tokens) {
                     var params = _.union(_.values(tokens), {}, function(err, user) {
@@ -72,7 +76,10 @@ servers.Collagen.augment({
 
             // Logout user
             _this.get('/auth/' + key + '/logout', function(req, res) {
-                var destination = req.headers.referer.split(req.headers.host)[1] || '/';
+                var destination = '/';
+                if (req.headers && req.headers.host && req.headers.referer)
+                    destination = req.headers.referer.split(req.headers.host)[1] || '/';
+                }
 
                 req.logout();
                 // Remove user object from session as well
