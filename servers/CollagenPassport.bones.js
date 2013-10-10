@@ -48,7 +48,7 @@ servers.Collagen.augment({
             _this.get('/auth/' + key + '/login', function(req, res, next) {
                 var cookieKey = Collagen.config.session.key,
                     tokens = req.session[options.sessionKey] || req.session['oauth'],
-                    destination = '/' + (req.query && req.query.destination || '');
+                    destination = req.headers.referer.split(req.headers.host)[1] || '/';
 
                 if (req.cookies[cookieKey] && tokens) {
                     var params = _.union(_.values(tokens), {}, function(err, user) {
@@ -72,7 +72,7 @@ servers.Collagen.augment({
 
             // Logout user
             _this.get('/auth/' + key + '/logout', function(req, res) {
-                var destination = '/' + (req.query && req.query.destination || '');
+                var destination = req.headers.referer.split(req.headers.host)[1] || '/';
 
                 req.logout();
                 // Remove user object from session as well
@@ -94,10 +94,11 @@ servers.Collagen.augment({
                 // Store the user object into the session for later retrieval
                 req.session.user = _.clone(req.user);
 
-                // @todo Decide wether we want to redirect always.
-                // This is currently quite hard to bypass.
                 req.session.messages = req.session.messages || [];
                 req.session.messages.push({type: 'info', message: 'User successfully logged in'});
+
+                // @todo Decide wether we want to redirect always.
+                // This is currently quite hard to bypass.
                 res.redirect('/');
             });
         });
