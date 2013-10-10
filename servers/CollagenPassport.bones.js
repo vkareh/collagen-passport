@@ -50,7 +50,7 @@ servers.Collagen.augment({
                     tokens = req.session[options.sessionKey] || req.session['oauth'];
 
                 var destination = '/';
-                if (req.headers && req.headers.host && req.headers.referer)
+                if (req.headers && req.headers.host && req.headers.referer) {
                     destination = req.headers.referer.split(req.headers.host)[1] || '/';
                 }
 
@@ -77,7 +77,7 @@ servers.Collagen.augment({
             // Logout user
             _this.get('/auth/' + key + '/logout', function(req, res) {
                 var destination = '/';
-                if (req.headers && req.headers.host && req.headers.referer)
+                if (req.headers && req.headers.host && req.headers.referer) {
                     destination = req.headers.referer.split(req.headers.host)[1] || '/';
                 }
 
