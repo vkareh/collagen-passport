@@ -1,7 +1,7 @@
 {
   "name": "collagen-passport",
   "description": "Integrate the passport authentication framework into Collagen.js",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": {
     "name": "Victor Kareh",
     "url": "http://www.vkareh.net"
