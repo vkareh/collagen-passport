@@ -20,11 +20,11 @@ servers.Collagen.augment({
             var verify = function() {
                 arguments = Array.prototype.slice.call(arguments);
 
-                var done = arguments.pop()
-                ,   profile = arguments.pop();
+                var done = arguments.pop(),
+                    profile = arguments.pop();
 
                 // Store profile details into the user object, to allow us to get them into the session.
-                if (options.requestTokenURL) _.extend(profile, {oauth: {token: arguments[0], token_secret: arguments[1]}});
+                if (strategy._oauth) _.extend(profile, {oauth: {token: arguments[0], token_secret: arguments[1]}});
                 else if (_.size(arguments)) _.extend(profile, arguments);
 
                 return done(null, profile);
@@ -50,19 +50,13 @@ servers.Collagen.augment({
                     tokens = req.session[options.sessionKey] || req.session['oauth'];
 
                 if (req.cookies[cookieKey] && tokens) {
-                    // Determine destination path after login
-                    var destination = '/';
-                    if (req.headers && req.headers.host && req.headers.referer) {
-                        destination = req.headers.referer.split(req.headers.host)[1] || '/';
-                    }
-
                     // Determine parameters to load user profile
                     var params = _.union(_.values(tokens), {}, function(err, user) {
-                        if (err) res.redirect('/auth/' + key);
+                        if (err) return res.redirect('/auth/' + key);
                         req.session.user = user;
                         req.session.messages = req.session.messages || [];
                         req.session.messages.push({type: 'info', message: 'User successfully logged in'});
-                        res.redirect(destination);
+                        res.redirect(options.loginRedirect || 'back');
                     });
                     strategy.userProfile.apply(strategy, params);
                 } else {
@@ -78,18 +72,12 @@ servers.Collagen.augment({
 
             // Logout user
             _this.get('/auth/' + key + '/logout', function(req, res) {
-                // Determine destination path after logout
-                var destination = '/';
-                if (req.headers && req.headers.host && req.headers.referer) {
-                    destination = req.headers.referer.split(req.headers.host)[1] || '/';
-                }
-
                 req.logout();
                 // Remove user object from session as well
                 delete req.session.user;
                 req.session.messages = req.session.messages || [];
                 req.session.messages.push({type: 'info', message: 'User successfully logged out'});
-                res.redirect(destination);
+                res.redirect(options.logoutRedirect || 'home');
             });
 
             // This should work with most OAuth-based authentication frameworks
@@ -109,7 +97,7 @@ servers.Collagen.augment({
 
                 // @todo Decide wether we want to redirect always.
                 // This is currently quite hard to bypass.
-                res.redirect('/');
+                res.redirect(options.loginRedirect.substr(0, 1) === '/' ? options.loginRedirect : 'home');
             });
         });
     }
