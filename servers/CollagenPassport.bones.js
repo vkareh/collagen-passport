@@ -97,7 +97,7 @@ servers.Collagen.augment({
 
                 // @todo Decide wether we want to redirect always.
                 // This is currently quite hard to bypass.
-                res.redirect(options.loginRedirect.substr(0, 1) === '/' ? options.loginRedirect : 'home');
+                res.redirect(options.loginRedirect && options.loginRedirect.substr(0, 1) === '/' ? options.loginRedirect : 'home');
             });
         });
     }
