@@ -73,8 +73,14 @@ servers.Collagen.augment({
             // Logout user
             _this.get('/auth/' + key + '/logout', function(req, res) {
                 req.logout();
-                // Remove user object from session as well
+                // Remove user object from session
                 delete req.session.user;
+                // Delete any existing OAuth tokens
+                delete req.session.oauth;
+                // Destroy session data from configured store
+                var sid = req.cookies[Collagen.config.session.key];
+                Collagen.config.session.store.destroy(sid);
+                // Display user message
                 req.session.messages = req.session.messages || [];
                 req.session.messages.push({type: 'info', message: 'User successfully logged out'});
                 res.redirect(options.logoutRedirect || 'home');
